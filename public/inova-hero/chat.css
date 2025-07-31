@@ -26,6 +26,7 @@ body {
 
 #subText {
     color: rgb(160 160 176 / var(--tw-text-opacity, 1));
+    display: none;
 }
 
 .bot-avatar {
@@ -257,6 +258,7 @@ p#subtitleText {
     padding-left: 20px;
     padding-right: 20px;
     margin-bottom: 20px !important;
+    display: none;
 }
 
 div#loadingScreen {
