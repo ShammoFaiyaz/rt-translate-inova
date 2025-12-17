@@ -118,7 +118,10 @@ async function handleServerEvent(e) {
     console.log("Response received:", serverEvent.response.output[0]);
     const transcript = serverEvent.response.output[0].content[0].transcript;
     console.log('transcript', transcript);
-    document.getElementById('subtitleText').innerHTML = transcript;
+    const subtitleEl = document.getElementById('subtitleText');
+    if (subtitleEl) {
+      subtitleEl.innerHTML = transcript;
+    }
 
     if (serverEvent.response.output[0].type === "function_call") {
       const { name, arguments, call_id } = serverEvent.response.output[0];
@@ -215,31 +218,37 @@ function stopSession() {
 }
 
 
-document.getElementById("messageInput").addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    console.log("input event");
-    const message = document.getElementById("messageInput").value;
-    console.log(message);
-    const event = {
-      type: "conversation.item.create",
-      item: {
-        type: "message",
-        role: "user",
-        content: [
-          {
-            type: "input_text",
-            text: message,
-          }
-        ]
-      },
-    };
-    
-    // WebRTC data channel and WebSocket both have .send()
-    dc.send(JSON.stringify(event));
-    
-    close_input_box();
-  }
-});
+const messageInputEl = document.getElementById("messageInput");
+if (messageInputEl) {
+  messageInputEl.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      console.log("input event");
+      const message = messageInputEl.value;
+      console.log(message);
+      const dcEvent = {
+        type: "conversation.item.create",
+        item: {
+          type: "message",
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: message,
+            }
+          ]
+        },
+      };
+
+      if (dc && dc.readyState === "open") {
+        dc.send(JSON.stringify(dcEvent));
+      }
+
+      if (typeof close_input_box === "function") {
+        close_input_box();
+      }
+    }
+  });
+}
 
 function configureTools() {
     if (dc && dc.readyState === "open") {
@@ -252,23 +261,7 @@ function configureTools() {
         };
         dc.send(JSON.stringify(event));
         console.log("Tools configured:", event.session.tools);
-        animation.play();
-        document.getElementById("mainText").innerHTML = "AI Translator is listening...";
-        document.getElementById("subText").innerHTML = "Just speak and I will help you translate";
       } else {
         console.error("Data channel is not open");
       }
 }
-
-document.getElementById("talkButton").addEventListener("click", () => {
-  if (pc && pc.connectionState === "connected") {
-    stopSession();
-    animation.stop();
-    document.getElementById("mainText").innerHTML = "AI Translator is paused...";
-    document.getElementById("subText").innerHTML = "Click the talk button to start again or change language from the top right menu";
-  } else {
-    init();
-    document.getElementById("mainText").innerHTML = "AI Translator is loading...";
-    document.getElementById("subText").innerHTML = "Please wait while the translator initializes";
-  }
-});

@@ -1,8 +1,22 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  const uri = process.env.MONGODB_URI;
+
+  // If no MongoDB URI is provided or it's clearly invalid, run in "dummy" mode so the app can start.
+  const isValidUri =
+    typeof uri === 'string' &&
+    (uri.startsWith('mongodb://') || uri.startsWith('mongodb+srv://'));
+
+  if (!isValidUri) {
+    console.warn(
+      'MONGODB_URI missing or invalid – running in dummy mode with NO database connection.'
+    );
+    return;
+  }
+
   try {
-    await mongoose.connect(process.env.MONGODB_URI, {
+    await mongoose.connect(uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 30000, // Increase timeout to 30 seconds

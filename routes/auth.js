@@ -5,45 +5,69 @@ const User = require('../models/userModel');
 
 const router = express.Router();
 
-// Google OAuth routes
-router.get('/google', passport.authenticate('google', {
-  scope: [
-    'profile', 
-    'email', 
-    'https://www.googleapis.com/auth/calendar', 
-    'https://www.googleapis.com/auth/calendar.events',
-    'https://www.googleapis.com/auth/gmail.send',
-    'https://www.googleapis.com/auth/gmail.readonly'
-  ],
-  accessType: 'offline',
-  prompt: 'consent'
-}));
+const googleEnabled =
+  process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
 
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/' }),
-  async (req, res) => {
-    try {
-      // Extract tokens and user info from the user object
-      const { accessToken, refreshToken, email, id } = req.user;
-      
-      // Create JWT token for authenticated routes
-      const token = jwt.sign({ id: id }, process.env.JWT_SECRET || 'your_jwt_secret');
-      
-      // Log tokens and userId for debugging
-      console.log('Access Token:', accessToken);
-      console.log('Refresh Token:', refreshToken);
-      console.log('User ID:', id);
-      console.log('JWT Token:', token);
-      
-      // Redirect to index.html with all tokens
-      res.redirect(
-        `/index.html?accessToken=${accessToken}&refreshToken=${refreshToken}&email=${email}&userId=${id}&token=${token}`
-      );
-    } catch (error) {
-      console.error('Error in Google callback:', error);
-      res.redirect('/login');
+// Google OAuth routes
+if (googleEnabled) {
+  router.get(
+    '/google',
+    passport.authenticate('google', {
+      scope: [
+        'profile',
+        'email',
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/calendar.events',
+        'https://www.googleapis.com/auth/gmail.send',
+        'https://www.googleapis.com/auth/gmail.readonly',
+      ],
+      accessType: 'offline',
+      prompt: 'consent',
+    })
+  );
+
+  router.get(
+    '/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }),
+    async (req, res) => {
+      try {
+        // Extract tokens and user info from the user object
+        const { accessToken, refreshToken, email, id } = req.user;
+
+        // Create JWT token for authenticated routes
+        const token = jwt.sign(
+          { id: id },
+          process.env.JWT_SECRET || 'your_jwt_secret'
+        );
+
+        // Log tokens and userId for debugging
+        console.log('Access Token:', accessToken);
+        console.log('Refresh Token:', refreshToken);
+        console.log('User ID:', id);
+        console.log('JWT Token:', token);
+
+        // Redirect to index.html with all tokens
+        res.redirect(
+          `/index.html?accessToken=${accessToken}&refreshToken=${refreshToken}&email=${email}&userId=${id}&token=${token}`
+        );
+      } catch (error) {
+        console.error('Error in Google callback:', error);
+        res.redirect('/login');
+      }
     }
-  }
-);
+  );
+} else {
+  // Dummy handlers so frontend can run without Google credentials
+  router.get('/google', (req, res) => {
+    res
+      .status(503)
+      .send('Google login is disabled – missing OAuth environment variables.');
+  });
+
+  router.get('/google/callback', (req, res) => {
+    res.redirect('/login');
+  });
+}
 
 // Add new signup route
 router.post('/signup', async (req, res) => {

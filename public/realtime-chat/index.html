@@ -1,127 +1,686 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HUMAN RESOURCES AND SOCIAL DEVELOPMENT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    <link rel="stylesheet" href="chat.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.4/lottie.min.js"></script>
-</head>
-
-<body class="flex flex-col">
-    <video id="bgAnimation" class="absolute inset-0 z-0" autoplay muted loop>
-        <!-- <source src="../assets/starry-night-forest-mountains-moewalls-com.mp4" type="video/mp4"> -->
-    </video> 
-    <div id="bgOverlay" class="absolute inset-0 z-1"></div>
-    <!-- Header -->
-    <header class="flex justify-between items-center p-6 fixed top-0 left-0 right-0 bg-opacity-80 z-10">
-        <button class="bg-white/10 p-4 rounded-full">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-        </button>
-        <img src="../assets/logo-ar.svg"
-            alt="OhanaPal Logo" class="h-10 w-auto">
-        <button class="bg-white/10 p-4 rounded-full" id="menuButton">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M5 12h.01M12 12h.01M19 12h.01" />
-            </svg>
-        </button>
-    </header>
-
-    <!-- Spacer for fixed header -->
-    <div class="h-24"></div>
-
-    <!-- Listening Input -->
-    <div class="px-6 my-4 fixed top-24 left-0 right-0 z-10 hide" id="actionMessage">
-        <div class="listening-input rounded-full py-4 px-6 text-center text-lg max-w-xl mx-auto">
-            Go ahead, I'm Listening...
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inova Translator</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="stylesheet" href="chat.css" />
+  </head>
+  <body class="app-body">
+    <main class="app-shell">
+      <!-- Top header (desktop layout + mobile hamburger menu wrapper) -->
+      <header class="app-header">
+        <!-- Mobile / tablet sticky bar with hamburger -->
+        <div class="mobile-header-bar">
+          <button
+            type="button"
+            id="mobile-menu-toggle"
+            class="mobile-menu-toggle"
+            aria-label="Toggle menu"
+            aria-expanded="false"
+          >
+            <span class="mobile-menu-line"></span>
+            <span class="mobile-menu-line"></span>
+            <span class="mobile-menu-line"></span>
+          </button>
+          <span class="mobile-header-label">Inova Translator</span>
         </div>
-    </div>
 
-    <!-- Spacer for fixed listening input -->
-    <div class="h-20"></div>
-
-    <!-- Loading Screen -->
-    <div id="loadingScreen" class="flex flex-col items-center justify-center h-full relative">
-       
-        <div id="lottieAnimation" class="w-64 h-64 z-10"></div>
-        <h1 class="text-2xl text-center font-bold mt-4 animate__animated animate__fadeIn z-10" id="mainText">Welcome! I'm your HRSD AI Translator</h1>
-        <p class="text-lg text-center mt-2 animate__animated animate__fadeIn z-10" id="subText">Click the talk button to get started or change language from the top right menu</p>
-        <p class="text-lg text-center mt-2 animate__animated animate__fadeIn z-10" id="langText">Loading languages...</p>
-        <p class="text-lg text-center mt-2 animate__animated animate__fadeIn z-10" id="subtitleText"></p>
-
-    </div>
-
-    <!-- Main Content -->
-    <div class="flex-1 px-6 space-y-6 overflow-y-auto" id="mainContainer" style="max-height: calc(100vh - 300px);">
-        <!-- Skeleton Loader -->
-        <div id="skeletonLoader" class="skeleton-loader hide">
-            <div class="skeleton-avatar"></div>
-            <div class="skeleton-text"></div>
-        </div>
-    </div>
-
-    <!-- Bottom Navigation (Fixed) -->
-    <div class="fixed bottom-0 left-0 right-0 p-4">
-        <div class="bottom-nav mx-auto max-w-xs rounded-full p-2 flex justify-between items-center">
-            <button class="p-3">
-                <!-- <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
-                </svg> -->
+        <!-- Shared header content (shown inline on desktop, inside menu on mobile) -->
+        <div class="app-header-inner" id="app-header-inner">
+          <div class="app-header-left">
+            <a
+              class="app-brand-card"
+              href="https://www.inovasolutions.ai/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <span class="app-brand-text">Powered By</span>
+              <img
+                src="../assets/inova-logo.png"
+                alt="Inova"
+                class="app-brand-logo"
+              />
+            </a>
+          </div>
+          <div class="app-header-center">
+            <img
+              src="inova-translator.gif"
+              alt="Inova Translator"
+              class="app-logo"
+            />
+          </div>
+          <div class="app-header-right">
+            <button
+              type="button"
+              id="ui-lang-toggle"
+              class="top-pill top-pill--lang"
+            >
+              العربية
             </button>
-            <button class="ai-button p-4 rounded-full" id="talkButton">
-                <div class="w-8 h-8 bg-white/20 rounded-full"></div>
-            </button>
-            <button class="p-3" id="showInput">
-                <!-- <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-                </svg> -->
-            </button>
+            <a href="/login" class="top-pill top-pill--login">
+              Login
+            </a>
+          </div>
         </div>
-        <div id="messageInputContainer" class="message-input-container animate__animated animate__slideInUp hide">
-            <textarea class="message-input" id="messageInput" placeholder="Type your message..."></textarea>
-            <button class="send-button" id="sendButton">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
+      </header>
+
+      <!-- Screen 1: Translator Ready / Loading -->
+      <section id="screen-loading" class="screen screen--active">
+        <section class="card" aria-label="Translator status">
+          <div class="status-fade status-preparing" id="status-container">
+            <div class="orb-wrapper">
+              <div class="orb orb--loading" id="status-orb">
+                <div class="orb-inner"></div>
+                <div class="orb-ring"></div>
+              </div>
+              <h2 class="heading" id="status-heading">
+                <span class="heading-preparing">Preparing</span> Secure Translator
+                <span class="heading-dots" id="heading-dots">.</span>
+              </h2>
+              <p class="subheading" id="status-subheading">
+                We’re setting up your audio and language channels.
+              </p>
+            </div>
+
+            <div class="status-main-row">
+              <div class="checklist">
+                <div class="check-row" data-step="1">
+                  <div class="check-icon check-icon--pending" id="check-step-1">●</div>
+                  <div>
+                    <div class="check-text-title">Secure connection</div>
+                    <div class="check-text-help">
+                      TLS encrypted channel between device and translator service.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="check-row" data-step="2">
+                  <div class="check-icon check-icon--pending" id="check-step-2">●</div>
+                  <div>
+                    <div class="check-text-title">Checking microphone</div>
+                    <div class="check-text-help">
+                      Input levels and permissions for both languages.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="check-row" data-step="3">
+                  <div class="check-icon check-icon--pending" id="check-step-3">●</div>
+                  <div>
+                    <div class="check-text-title">Initializing language engine</div>
+                    <div class="check-text-help">
+                      Arabic–English real-time translation pipeline.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="check-row" data-step="4">
+                  <div class="check-icon check-icon--pending" id="check-step-4">●</div>
+                  <div>
+                    <div class="check-text-title">Session safeguards</div>
+                    <div class="check-text-help">
+                      Role-based access, audit logging, and incident flags for this session.
+                    </div>
+                  </div>
+                </div>
+
+                <div class="check-row" data-step="5">
+                  <div class="check-icon check-icon--pending" id="check-step-5">●</div>
+                  <div>
+                    <div class="check-text-title">Session transcript</div>
+                    <div class="check-text-help">
+                      Secure transcript capture enabled for officer review after the visit.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="assignment-row"
+                aria-label="Assign officer, inmate, device, and languages"
+              >
+                <div class="assignment-grid-top">
+                  <div class="assignment-field">
+                    <label class="assignment-label" for="officer-lang-select">
+                      OFFICER LANGUAGE (INPUT):
+                    </label>
+                    <select
+                      id="officer-lang-select"
+                      class="assignment-select"
+                    ></select>
+                  </div>
+
+                  <div class="assignment-field">
+                    <label class="assignment-label" for="inmate-lang-select">
+                      INMATE LANGUAGE (OUTPUT):
+                    </label>
+                    <select
+                      id="inmate-lang-select"
+                      class="assignment-select"
+                    ></select>
+                  </div>
+                </div>
+
+                <!-- Additional dummy dropdowns (UI-only, no backend wiring) -->
+                <div
+                  class="assignment-grid-bottom"
+                  aria-label="Assign officer, inmate, purpose, and device"
+                >
+                  <div class="assignment-field">
+                    <label class="assignment-label" for="officer-dummy-select">
+                      OFFICER:
+                    </label>
+                    <select
+                      id="officer-dummy-select"
+                      class="assignment-select"
+                    >
+                      <option value="officer1">Lt. Faisal Al-Harbi</option>
+                      <option value="officer2">Sgt. Omar Al-Qahtani</option>
+                      <option value="officer3">Officer Lina Al-Saad</option>
+                      <option value="officer4">Officer David Mitchell</option>
+                      <option value="officer5">Captain Rania Al-Faraj</option>
+                    </select>
+                  </div>
+
+                  <div class="assignment-field">
+                    <label class="assignment-label" for="inmate-dummy-select">
+                      INMATE:
+                    </label>
+                    <select
+                      id="inmate-dummy-select"
+                      class="assignment-select"
+                    >
+                      <option
+                        value="inmate1"
+                        data-id="#45821"
+                        data-need-en="Medical intake"
+                        data-need-ar="فحص طبي أولي"
+                      >
+                        Inmate #45821 · Medical intake
+                      </option>
+                      <option
+                        value="inmate2"
+                        data-id="#39107"
+                        data-need-en="Psychological evaluation"
+                        data-need-ar="تقييم نفسي"
+                      >
+                        Inmate #39107 · Psychological evaluation
+                      </option>
+                      <option
+                        value="inmate3"
+                        data-id="#77402"
+                        data-need-en="Post-surgery follow-up"
+                        data-need-ar="متابعة بعد الجراحة"
+                      >
+                        Inmate #77402 · Post-surgery follow-up
+                      </option>
+                      <option
+                        value="inmate4"
+                        data-id="#62015"
+                        data-need-en="Chronic disease check"
+                        data-need-ar="مراجعة مرض مزمن"
+                      >
+                        Inmate #62015 · Chronic disease check
+                      </option>
+                      <option
+                        value="inmate5"
+                        data-id="#50988"
+                        data-need-en="Injury assessment"
+                        data-need-ar="تقييم إصابة"
+                      >
+                        Inmate #50988 · Injury assessment
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="assignment-field">
+                    <label class="assignment-label" for="purpose-dummy-select">
+                      PURPOSE:
+                    </label>
+                    <select
+                      id="purpose-dummy-select"
+                      class="assignment-select"
+                    >
+                      <option
+                        value="purpose-medical"
+                        data-en="Medical checkup"
+                        data-ar="فحص طبي"
+                      >
+                        Medical checkup
+                      </option>
+                      <option
+                        value="purpose-legal"
+                        data-en="Legal / interview"
+                        data-ar="مقابلة / استشارة قانونية"
+                      >
+                        Legal / interview
+                      </option>
+                      <option
+                        value="purpose-family"
+                        data-en="Family call facilitation"
+                        data-ar="تيسير مكالمة عائلية"
+                      >
+                        Family call facilitation
+                      </option>
+                      <option
+                        value="purpose-psych"
+                        data-en="Psychological evaluation"
+                        data-ar="تقييم نفسي"
+                      >
+                        Psychological evaluation
+                      </option>
+                      <option
+                        value="purpose-intake"
+                        data-en="Intake orientation"
+                        data-ar="إرشاد استقبال"
+                      >
+                        Intake orientation
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="assignment-field">
+                    <label class="assignment-label" for="device-dummy-select">
+                      DEVICE:
+                    </label>
+                    <select
+                      id="device-dummy-select"
+                      class="assignment-select"
+                    >
+                      <option
+                        value="device-kiosk3"
+                        data-en="Intake kiosk · Station 3"
+                        data-ar="كشك الاستقبال · المحطة 3"
+                      >
+                        Intake kiosk · Station 3
+                      </option>
+                      <option
+                        value="device-medbay1"
+                        data-en="Medical bay tablet · Room 1"
+                        data-ar="جهاز لوحي في الجناح الطبي · الغرفة 1"
+                      >
+                        Medical bay tablet · Room 1
+                      </option>
+                      <option
+                        value="device-cart2"
+                        data-en="Portable handset · Cart 2"
+                        data-ar="سماعة محمولة · العربة 2"
+                      >
+                        Portable handset · Cart 2
+                      </option>
+                      <option
+                        value="device-observe"
+                        data-en="Observation booth · Station A"
+                        data-ar="كشك المراقبة · المحطة A"
+                      >
+                        Observation booth · Station A
+                      </option>
+                      <option
+                        value="device-isolation"
+                        data-en="Isolation wing tablet · Cell 9"
+                        data-ar="جهاز لوحي في جناح العزل · الزنزانة 9"
+                      >
+                        Isolation wing tablet · Cell 9
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ready-button-wrapper" id="ready-button-wrapper">
+            <button
+              type="button"
+              class="btn-primary btn-primary--lg"
+              id="start-session-btn"
+              disabled
+            >
+              Start Translation Session
             </button>
-        </div>
-        <div class="powered-by"> 
-            <img src="https://4eca5ada943fe5450f1b9f217373973c.cdn.bubble.io/f1731061485485x750911034910286100/ohana-only.png" alt="OhanaPal Logo" class="powered-by-logo"> Translator | Powered by <img src="../assets/inova-logo.png" alt="OhanaPal Logo" class="powered-by-logo-two">
-        </div>
-    </div>
-    
-    <audio id="remoteAudio" autoplay></audio>
-    <script src="onload.js"></script>
-    <script src="../utilities/display.js"></script>
-    <!-- <script src="../utilities/tools.js"></script> -->
+          </div>
+        </section>
+
+      </section>
+
+      <!-- Screen 2: Live Translation Session -->
+      <section
+        id="screen-live"
+        class="screen screen--hidden"
+        aria-label="Live translator dashboard"
+      >
+        <section class="card status-fade">
+          <!-- Header -->
+          <header class="live-header">
+            <div>
+              <h2 class="heading">
+                Live Translation Session
+              </h2>
+              <p class="live-subheading">
+                Guard and inmate are linked through a secure audio channel. Every
+                utterance is translated in real time and logged for incident review.
+              </p>
+            </div>
+            <div class="live-session-meta">
+              <button
+                type="button"
+                id="back-to-status"
+                class="top-pill top-pill--back"
+              >
+                <span class="back-arrow"></span>
+                <span>Back</span>
+              </button>
+              <div class="live-session-tag live-session-tag--soft">
+                Mode: Prison intake · Medical checkup
+              </div>
+            </div>
+          </header>
+
+          <!-- Identity panels – desktop -->
+          <div class="identity-row-desktop">
+            <section class="identity-card" aria-label="Officer profile">
+              <div class="identity-title-row">
+                <span class="identity-role-chip identity-role-chip--officer">
+                  👮 Officer
+                </span>
+              </div>
+              <table class="identity-table">
+                <tbody>
+                  <tr>
+                    <th rowspan="7" class="identity-avatar-cell">
+                      <div class="identity-avatar">👤</div>
+                    </th>
+                    <th scope="row">Name</th>
+                    <td>Lt. Faisal Al-Harbi</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Badge</th>
+                    <td>#72418</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Designation</th>
+                    <td>Corrections officer · Block C Security</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Primary role</th>
+                    <td>Primary communicator</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Age</th>
+                    <td colspan="2">41</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Primary language</th>
+                    <td colspan="2">
+                      Arabic (<span class="lang-code">AR</span>)
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section class="identity-card" aria-label="Inmate profile">
+              <div class="identity-title-row">
+                <span class="identity-role-chip identity-role-chip--inmate">
+                  👤 Inmate
+                </span>
+              </div>
+              <table class="identity-table">
+                <tbody>
+                  <tr>
+                    <th rowspan="6" class="identity-avatar-cell">
+                      <div class="identity-avatar">👤</div>
+                    </th>
+                    <th scope="row">Name</th>
+                    <td>John Michael Rivera</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">ID</th>
+                    <td>A-204913</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Current status</th>
+                    <td>Pre-trial hold · Medical observation</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Charges</th>
+                    <td>Possession · Disturbance of peace</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Age</th>
+                    <td>36</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Language</th>
+                    <td>
+                      English (<span class="lang-code">EN</span>)
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+          </div>
+
+          <!-- Identity panels – mobile accordion -->
+          <div class="identity-accordion-mobile">
+            <section class="identity-accordion-card" aria-label="Officer profile mobile">
+              <button type="button" class="identity-accordion-header" data-identity="officer">
+                <span class="identity-accordion-title">Information of the Officer</span>
+                <span class="identity-accordion-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="identity-accordion-body" id="identity-officer-body">
+                <div class="identity-portrait">
+                  <div class="identity-portrait-avatar">👤</div>
+                  <span class="identity-portrait-chip identity-role-chip--officer">
+                    Officer
+                  </span>
+                </div>
+                <dl class="identity-details">
+                  <div class="identity-detail-row">
+                    <dt>Name</dt>
+                    <dd>Lt. Faisal Al-Harbi</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>Badge</dt>
+                    <dd>#72418</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>Designation</dt>
+                    <dd>Corrections officer · Block C Security</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>Primary role</dt>
+                    <dd>Primary communicator</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>Age</dt>
+                    <dd>41</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>Primary language</dt>
+                    <dd>Arabic (AR)</dd>
+                  </div>
+                </dl>
+              </div>
+            </section>
+
+            <section class="identity-accordion-card" aria-label="Inmate profile mobile">
+              <button type="button" class="identity-accordion-header" data-identity="inmate">
+                <span class="identity-accordion-title">Information of the Inmate</span>
+                <span class="identity-accordion-chevron" aria-hidden="true">⌄</span>
+              </button>
+              <div class="identity-accordion-body" id="identity-inmate-body">
+                <div class="identity-portrait">
+                  <div class="identity-portrait-avatar">👤</div>
+                  <span class="identity-portrait-chip identity-role-chip--inmate">
+                    Inmate
+                  </span>
+                </div>
+                <dl class="identity-details">
+                  <div class="identity-detail-row">
+                    <dt>Name</dt>
+                    <dd>John Michael Rivera</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>ID</dt>
+                    <dd>A-204913</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>Current status</dt>
+                    <dd>Pre-trial hold · Medical observation</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>Charges</dt>
+                    <dd>Possession · Disturbance of peace</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>Age</dt>
+                    <dd>36</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>Language</dt>
+                    <dd>English (EN)</dd>
+                  </div>
+                  <div class="identity-detail-row">
+                    <dt>Notes</dt>
+                    <dd>Cardiac risk · Current chest pain</dd>
+                  </div>
+                </dl>
+              </div>
+            </section>
+          </div>
+
+          <!-- Location strip -->
+          <div class="location-strip">
+            <div>
+              📍 Riyadh Central Facility · Medical Wing · Room M-203
+            </div>
+            <div class="location-strip-meta">
+              Device RT-UNIT-07 · Local time 14:03
+            </div>
+          </div>
+
+          <!-- Telemetry -->
+          <div class="telemetry-row">
+            <div class="telemetry-item telemetry-item--status">
+              <span class="telemetry-label">Status</span>
+              <span class="telemetry-value telemetry-value--good">
+                Online – Encrypted
+              </span>
+            </div>
+            <div class="telemetry-item telemetry-item--latency">
+              <span class="telemetry-label">Latency</span>
+              <span class="telemetry-value telemetry-value--good">82 ms</span>
+            </div>
+            <div class="telemetry-item telemetry-item--connection">
+              <span class="telemetry-label">Connection</span>
+              <span class="telemetry-value telemetry-value--good">
+                Stable · 0.3% loss
+              </span>
+            </div>
+            <div class="telemetry-item telemetry-item--langs">
+              <span class="telemetry-label">Languages</span>
+              <span class="telemetry-value telemetry-value--good" id="telemetry-langs">
+                PO ⇄ PO
+              </span>
+            </div>
+          </div>
+
+          <!-- Subtitle strip -->
+          <div class="subtitle-strip">
+            <p class="subtitle-text" id="subtitleText">
+              Live translated transcript will appear here.
+            </p>
+          </div>
+
+          <!-- Conversation + notes -->
+          <section
+            id="conversation-section"
+            class="conversation-section hidden"
+            aria-label="Conversation and notes"
+          >
+            <div class="conversation-layout">
+              <div class="conversation-panel" aria-label="Conversation">
+                <div class="conversation-header">
+                  <h3 class="conversation-title">Conversation</h3>
+                  <div class="conversation-meta">Session 1 · Medical intake</div>
+                </div>
+                <div class="conversation-body" id="conversation-body">
+                  <!-- Messages will be appended here by chat.js -->
+                </div>
+              </div>
+
+              <aside class="notes-panel" aria-label="Officer notes">
+                <div class="notes-header">
+                  <h3 class="notes-title">Officer notes</h3>
+                  <div class="notes-meta">Visible only to officers</div>
+                </div>
+                <div class="notes-body">
+                  <p>
+                    Use this space to summarize key statements, medical concerns, or
+                    risk indicators that arise during the session.
+                  </p>
+                  <ul>
+                    <li>Chest pain onset, duration, and character</li>
+                    <li>Recent medications or substances</li>
+                    <li>Any self-harm statements or high-risk disclosures</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <!-- Mic bar -->
+          <section class="mic-bar" aria-label="Microphone controls">
+            <div class="mic-bar-inner">
+              <div class="mic-bar-left">
+                <button
+                  type="button"
+                  id="talkButton"
+                  class="mic-button"
+                  aria-label="Start or stop talking"
+                >
+                  <svg
+                    class="mic-icon"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a1 1 0 1 1 2 0 7 7 0 0 1-6 6.93V21h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-3.07A7 7 0 0 1 5 11a1 1 0 1 1 2 0 5 5 0 0 0 10 0z"
+                    />
+                  </svg>
+                  <span class="mic-text">Start talking</span>
+                </button>
+                <div class="mic-status hidden" id="mic-status">
+                  <div class="mic-status-label">Live</div>
+                  <div class="mic-status-dots" id="mic-status-dots">...</div>
+                </div>
+              </div>
+
+              <div class="mic-bar-right">
+                <div class="mic-hint">Press and speak at a natural pace.</div>
+              </div>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <!-- Hidden legacy inputs preserved for tool compatibility -->
+      <input type="hidden" id="inputLanguage" />
+      <input type="hidden" id="outputLanguage" />
+      <input type="hidden" id="sessionId" />
+      <input type="hidden" id="agentName" value="None" />
+      <input type="hidden" id="messageInput" />
+    </main>
+
+    <script src="../utilities/websocket.js"></script>
     <script src="../utilities/tools_realtime.js"></script>
-    <script src="../utilities/tool_executor.js"></script>
-    <!-- <script src="../utilities/websocket.js"></script> -->
     <script src="../utilities/tool_handler.js"></script>
+    <script src="../utilities/tool_executor.js"></script>
+    <script src="../utilities/display.js"></script>
     <script src="chat.js"></script>
-    <script>
-    </script>
-    <!-- Popout Menu -->
-    <div id="languageMenu" class="language-menu">
-        <h2>Select your language</h2>
-        <label for="inputLanguage">Input Language</label>
-        <select id="inputLanguage">
-            <!-- Options will be populated by JavaScript -->
-        </select>
-        <label for="outputLanguage">Output Language</label>
-        <select id="outputLanguage" disabled>
-            <!-- Options will be populated by JavaScript -->
-        </select>
-    </div>
-
-   
-</body>
-
+    <script src="onload.js"></script>
+  </body>
 </html>
