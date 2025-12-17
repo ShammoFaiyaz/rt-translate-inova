@@ -9,6 +9,15 @@ body {
     padding-bottom: 80px; /* Add padding to account for fixed menu */
 }
 
+/* Avoid brief flash of wrong UI language before JS applies RTL/EN logic */
+html:not(.ui-lang-ready) body {
+  visibility: hidden;
+}
+
+html.ui-lang-ready body {
+  visibility: visible;
+}
+
 @media (max-width: 900px), (max-width: 1024px) and (orientation: portrait) {
   body::before {
     content: '';

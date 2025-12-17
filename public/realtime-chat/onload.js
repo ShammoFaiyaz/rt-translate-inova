@@ -1286,10 +1286,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    // Default UI language to Arabic (RTL) on first load
-    const initialLang = localStorage.getItem('ui_lang') || 'ar';
-
+    // Always start in Arabic (RTL) on load (ignore previous choice)
+    const initialLang = 'ar';
     applyUiLang(initialLang);
+    // Mark that the UI language has been applied so CSS can reveal the page
+    document.documentElement.classList.add('ui-lang-ready');
 
 
 
