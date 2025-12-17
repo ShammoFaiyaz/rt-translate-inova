@@ -761,9 +761,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-      // Update page title
-
-      document.title = t('Inova Translator', 'منصة إنوفا للترجمة');
+      // Update page title (EN ⇄ AR)
+      document.title = t('Inova Translator', 'مترجم إنوفا');
 
 
 
@@ -1287,7 +1286,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    const initialLang = localStorage.getItem('ui_lang') || 'en';
+    // Default UI language to Arabic (RTL) on first load
+    const initialLang = localStorage.getItem('ui_lang') || 'ar';
 
     applyUiLang(initialLang);
 
