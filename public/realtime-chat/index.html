@@ -607,6 +607,9 @@
                   <h3 class="conversation-title">Conversation</h3>
                   <div class="conversation-meta">Session 1 · Medical intake</div>
                 </div>
+                <p class="conversation-subheading">
+                  Live transcript of the officer–inmate dialogue for this session.
+                </p>
                 <div class="conversation-body" id="conversation-body">
                   <!-- Messages will be appended here by chat.js -->
                 </div>
@@ -615,18 +618,35 @@
               <aside class="notes-panel" aria-label="Officer notes">
                 <div class="notes-header">
                   <h3 class="notes-title">Officer notes</h3>
-                  <div class="notes-meta">Visible only to officers</div>
                 </div>
+                <p class="notes-subheading">
+                  Use this area to capture clinical observations, risks, and follow-up actions.
+                </p>
                 <div class="notes-body">
-                  <p>
-                    Use this space to summarize key statements, medical concerns, or
-                    risk indicators that arise during the session.
-                  </p>
-                  <ul>
-                    <li>Chest pain onset, duration, and character</li>
-                    <li>Recent medications or substances</li>
-                    <li>Any self-harm statements or high-risk disclosures</li>
-                  </ul>
+                  <div class="session-notes">
+                    <div class="session-notes-header">
+                      <div class="session-notes-title">Quick actions</div>
+                      <div class="session-quick-actions">
+                        <button type="button" class="session-chip">
+                          Flag medical risk
+                        </button>
+                        <button type="button" class="session-chip">
+                          Escalate to supervisor
+                        </button>
+                        <button type="button" class="session-chip">
+                          Mark for follow-up
+                        </button>
+                      </div>
+                    </div>
+                    <textarea
+                      class="session-notes-textarea"
+                      placeholder="Type officer notes here…"
+                    ></textarea>
+                    <p class="session-hint">
+                      Notes are visible only to officers and are not read aloud or
+                      shared with the inmate.
+                    </p>
+                  </div>
                 </div>
               </aside>
             </div>
@@ -654,7 +674,10 @@
                   <span class="mic-text">Start talking</span>
                 </button>
                 <div class="mic-status hidden" id="mic-status">
-                  <div class="mic-status-label">Live</div>
+                  <div class="mic-status-label-row">
+                    <span class="mic-status-orb"></span>
+                    <span class="mic-status-label">Live</span>
+                  </div>
                   <div class="mic-status-dots" id="mic-status-dots">...</div>
                 </div>
               </div>
@@ -664,6 +687,9 @@
               </div>
             </div>
           </section>
+
+          <!-- Hidden audio element for realtime translated audio playback -->
+          <audio id="remoteAudio" autoplay style="display: none;"></audio>
         </section>
       </section>
 

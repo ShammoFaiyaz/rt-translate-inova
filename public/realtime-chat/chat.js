@@ -11,6 +11,12 @@ const formattedToday = today.toLocaleString('en-US', { timeZone: userTimeZone })
 const inputLanguage = localStorage.getItem('input_language');
 const outputLanguage = localStorage.getItem('output_language');
 
+const sourceCode =
+  !inputLanguage || inputLanguage === 'Auto-detect'
+    ? 'AUTO'
+    : inputLanguage.slice(0, 2).toUpperCase();
+const targetCode = outputLanguage ? outputLanguage.slice(0, 2).toUpperCase() : '';
+
 const reprompt = `Hidden Context (the user is not aware this is part of their message): The users timezone is ${userTimeZone}. The current date/time is ${formattedToday}.`;
 
 const systemPrompt = `
@@ -54,6 +60,7 @@ Your sole function is to faithfully convert spoken words between languages. Do n
 
 let pc; // Declare the peer connection outside the function for broader scope
 let dc; // Declare the data channel outside the function for broader scope
+let lastMicText = ""; // Last user utterance text captured from the mic
 
 async function init() {
   const tokenResponse = await fetch("/ai/session");
@@ -61,6 +68,8 @@ async function init() {
   const EPHEMERAL_KEY = data.client_secret.value;
 
   pc = new RTCPeerConnection(); // Initialize the peer connection
+  // Expose on window so onload.js can inspect connection state
+  window.pc = pc;
   const audioEl = document.getElementById("remoteAudio");
   pc.ontrack = e => audioEl.srcObject = e.streams[0]; // Set the audio element's source to the remote stream
 
@@ -68,6 +77,7 @@ async function init() {
   pc.addTrack(ms.getTracks()[0]);
 
   dc = pc.createDataChannel("oai-events");
+  window.dc = dc;
   dc.addEventListener("open", () => {
     console.log("Data channel is open");
     // Update the system instructions once the data channel is open
@@ -112,19 +122,90 @@ function updateInstructions(newInstructions) {
   }
 }
 
+// Helper: try to pull a human‑readable text string out of a Realtime item,
+// regardless of the exact shape OpenAI uses.
+function extractReadableTextFromItem(item) {
+  if (!item || typeof item !== "object") return "";
+
+  // Common direct fields
+  if (typeof item.text === "string") return item.text;
+  if (item.text && typeof item.text.value === "string") return item.text.value;
+  if (typeof item.transcript === "string") return item.transcript;
+
+  // Messages with nested content arrays
+  if (Array.isArray(item.content)) {
+    for (const part of item.content) {
+      const t = extractReadableTextFromItem(part);
+      if (t) return t;
+    }
+  }
+
+  // Generic scan: look for any reasonably long string with spaces
+  for (const value of Object.values(item)) {
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (trimmed.length > 10 && trimmed.includes(" ")) {
+        return trimmed;
+      }
+    }
+  }
+
+  return "";
+}
+
 async function handleServerEvent(e) {
   const serverEvent = JSON.parse(e.data);
+  console.log("Realtime event received:", serverEvent.type, serverEvent);
+
+   // Log what the mic / user side is sending into the conversation.
+  if (serverEvent.type === "conversation.item.created") {
+    const micText = extractReadableTextFromItem(serverEvent.item);
+    if (micText) {
+      console.log("MIC text (user input):", micText);
+      lastMicText = micText;
+    }
+  }
+
   if (serverEvent.type === "response.done") {
-    console.log("Response received:", serverEvent.response.output[0]);
-    const transcript = serverEvent.response.output[0].content[0].transcript;
-    console.log('transcript', transcript);
-    const subtitleEl = document.getElementById('subtitleText');
-    if (subtitleEl) {
-      subtitleEl.innerHTML = transcript;
+    // Log high‑level status to understand why the model might be failing
+    if (serverEvent.response) {
+      console.log(
+        "Response status:",
+        serverEvent.response.status,
+        "details:",
+        serverEvent.response.status_details
+      );
     }
 
-    if (serverEvent.response.output[0].type === "function_call") {
-      const { name, arguments, call_id } = serverEvent.response.output[0];
+    const outputItems = serverEvent.response?.output || [];
+    const primaryItem = outputItems[0];
+    const displayText = extractReadableTextFromItem(primaryItem) || "";
+
+    console.log("Parsed display text from response:", displayText, "raw item:", primaryItem);
+
+    // Build combined display string: "<mic> (SRC) - <translation> (TGT)"
+    let combinedText = displayText;
+    if (displayText) {
+      if (lastMicText) {
+        combinedText = `${lastMicText} (${sourceCode}) - ${displayText} (${targetCode})`;
+      } else {
+        // Fallback if we don't have mic text (e.g. typed input)
+        combinedText = `${displayText} (${targetCode})`;
+      }
+    }
+
+    const subtitleEl = document.getElementById('subtitleText');
+    if (subtitleEl && combinedText) {
+      subtitleEl.textContent = combinedText;
+    }
+
+    // Also append to the conversation log panel if available
+    if (combinedText) {
+      appendTranscriptToConversation(combinedText);
+    }
+
+    if (primaryItem && primaryItem.type === "function_call") {
+      const { name, arguments, call_id } = primaryItem;
       console.log('its a tool call');
       let args = JSON.parse(arguments);
       let result;
@@ -185,21 +266,31 @@ async function handleServerEvent(e) {
       console.log("Function result sent:", result);
     }
 
-    // Handle the response, e.g., display text or process audio
-    if (serverEvent.response.output[0].type === "text") {
-      const textResponse = serverEvent.response.output[0].content;
-      displayTextResponse(textResponse);
-    } else if (serverEvent.response.output[0].type === "audio") {
-      const audioStream = serverEvent.response.output[0].content;
-      console.log("Audio stream received", serverEvent.response.output[0]);
-      playAudioStream(audioStream);
-    }
   }
 }
 
+function appendTranscriptToConversation(text) {
+  const body = document.getElementById("conversation-body");
+  if (!body || !text) return;
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "bubble bubble--inmate";
+
+  const p = document.createElement("p");
+  p.className = "bubble-text--primary";
+  p.textContent = text;
+
+  wrapper.appendChild(p);
+  body.appendChild(wrapper);
+  body.scrollTop = body.scrollHeight;
+}
+
 function displayTextResponse(text) {
-  // Implement logic to display text response to the user
+  // Fallback handler for explicit text responses from the model
   console.log("Text response:", text);
+  if (typeof text === "string") {
+    appendTranscriptToConversation(text);
+  }
 }
 
 function playAudioStream(audioStream) {
@@ -213,6 +304,7 @@ function stopSession() {
   if (pc) {
     pc.close(); // Close the peer connection
     pc = null; // Reset the peer connection variable
+    window.pc = null;
     console.log("Session stopped");
   }
 }

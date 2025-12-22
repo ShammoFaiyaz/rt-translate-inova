@@ -306,6 +306,7 @@ div#loadingScreen {
   max-width: 1200px;
   padding: 16px;
   box-sizing: border-box;
+  padding-bottom: 48px;
 }
 
 .app-header {
@@ -1219,11 +1220,41 @@ div#loadingScreen {
   padding: 10px 12px;
 }
 
+.conversation-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+  /* Slightly tighter gap to subheading */
+  margin: 0 0 2px;
+}
+
+.notes-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
 .conversation-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
+  /* Slightly tighter gap before subheading */
+  margin-bottom: 4px;
+}
+
+.conversation-subheading {
+  /* Tight gap to title, generous gap below */
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.notes-subheading {
+  /* Extra gap below notes subtext */
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #6b7280;
 }
 
 .conversation-role {
@@ -1248,8 +1279,9 @@ div#loadingScreen {
 }
 
 .conversation-pill--inmate {
-  background: rgba(220, 38, 38, 0.18);
-  color: #fecaca;
+  /* Match the blue family used for the Back pill */
+  background: rgba(14, 165, 233, 0.18);
+  color: #0ea5e9;
 }
 
 .conversation-bubbles {
@@ -1269,14 +1301,20 @@ div#loadingScreen {
   font-size: 13px;
 }
 
+/* Add vertical spacing between conversation bubbles */
+#conversation-body > .bubble {
+  margin-bottom: 6px;
+}
+
 .bubble--officer {
   background: #e0f2fe;
   border: 1px solid rgba(59, 130, 246, 0.4);
 }
 
 .bubble--inmate {
-  background: #fee2e2;
-  border: 1px solid rgba(248, 113, 113, 0.5);
+  /* Use the same blue family as the Back pill */
+  background: #e0f2fe;
+  border: 1px solid rgba(14, 165, 233, 0.6);
 }
 
 .bubble-meta {
@@ -1428,12 +1466,17 @@ div#loadingScreen {
 
 .session-chip {
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  background: #ffffff;
-  color: #111827;
+  border: 1px solid #ef4444;
+  background: #ef4444;
+  color: #ffffff;
   font-size: 11px;
   padding: 4px 10px;
   cursor: pointer;
+}
+
+.session-chip:hover {
+  background: #dc2626;
+  border-color: #dc2626;
 }
 
 .session-btn {
@@ -1452,6 +1495,7 @@ div#loadingScreen {
 .session-notes-textarea {
   width: 100%;
   margin-top: 4px;
+  box-sizing: border-box;
   border-radius: 12px;
   border: 1px solid rgba(156, 163, 175, 0.85);
   background: #ffffff;
@@ -1470,6 +1514,37 @@ div#loadingScreen {
 
 .session-hint--center {
   text-align: center;
+}
+
+/* Mic live status: green orb + centered dots */
+.mic-status {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mic-status-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #16a34a;
+}
+
+.mic-status-orb {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+}
+
+.mic-status-dots {
+  text-align: center;
+  font-size: 14px;
 }
 
 .hidden {

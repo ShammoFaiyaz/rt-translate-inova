@@ -1234,6 +1234,77 @@ document.addEventListener('DOMContentLoaded', () => {
         );
       }
 
+      // Conversation & officer notes headers
+      const conversationTitle = document.querySelector('.conversation-title');
+      if (conversationTitle) {
+        conversationTitle.textContent = t('Conversation', 'المحادثة');
+      }
+
+      const notesTitle = document.querySelector('.notes-title');
+      if (notesTitle) {
+        notesTitle.textContent = t('Officer notes', 'ملاحظات الضابط');
+      }
+
+      const quickActionsTitle = document.querySelector('.session-notes-title');
+      if (quickActionsTitle) {
+        quickActionsTitle.textContent = t('Quick actions', 'إجراءات سريعة');
+      }
+
+      const conversationSubheading = document.querySelector('.conversation-subheading');
+      if (conversationSubheading) {
+        conversationSubheading.textContent = t(
+          'Live transcript of the officer–inmate dialogue for this session.',
+          'النص الحي للمحادثة بين الضابط والنزيل في هذه الجلسة.'
+        );
+      }
+
+      const notesSubheading = document.querySelector('.notes-subheading');
+      if (notesSubheading) {
+        notesSubheading.textContent = t(
+          'Use this area to capture clinical observations, risks, and follow-up actions.',
+          'استخدم هذه المساحة لتسجيل الملاحظات السريرية ومخاطر الحالة وإجراءات المتابعة.'
+        );
+      }
+
+      const notesHint = document.querySelector('.session-hint');
+      if (notesHint) {
+        notesHint.textContent = t(
+          'Notes are visible only to officers and are not read aloud or shared with the inmate.',
+          'الملاحظات مرئية للضباط فقط ولا يتم قراءتها بصوت عالٍ أو مشاركتها مع النزيل.'
+        );
+      }
+
+      const notesTextarea = document.querySelector('.session-notes-textarea');
+      if (notesTextarea) {
+        notesTextarea.placeholder = t(
+          'Type officer notes here…',
+          'اكتب ملاحظات الضابط هنا…'
+        );
+      }
+
+      // Conversation meta (session label)
+      const convoMeta = document.querySelector('.conversation-meta');
+      if (convoMeta) {
+        convoMeta.textContent = t(
+          'Session 1 · Medical intake',
+          'الجلسة 1 · فحص طبي'
+        );
+      }
+
+      // Quick action buttons
+      const quickActionButtons = document.querySelectorAll('.session-quick-actions .session-chip');
+      if (quickActionButtons.length >= 3) {
+        quickActionButtons[0].textContent = t('Flag medical risk', 'الإشارة إلى خطر طبي');
+        quickActionButtons[1].textContent = t('Escalate to supervisor', 'تصعيد إلى المشرف');
+        quickActionButtons[2].textContent = t('Mark for follow-up', 'وضع علامة للمتابعة');
+      }
+
+      // Mic live label
+      const micStatusLabel = document.querySelector('.mic-status-label');
+      if (micStatusLabel) {
+        micStatusLabel.textContent = t('Live', 'مباشر');
+      }
+
       // Subtitle text under live transcript
       const subtitleEl = document.getElementById('subtitleText');
       if (subtitleEl) {
