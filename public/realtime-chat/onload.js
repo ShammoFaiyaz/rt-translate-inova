@@ -704,6 +704,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         startMicDots();
 
+        // After mic permissions are granted and the session starts,
+        // scroll the viewport all the way down so the user sees
+        // the live transcript and notes area.
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth',
+        });
+
       }
 
     });
