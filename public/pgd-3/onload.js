@@ -15,8 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('session_id', sessionId);
 
     // Set default languages in local storage if not already set
+    // Default input language is English instead of Auto-detect
     if (!localStorage.getItem('input_language')) {
-        localStorage.setItem('input_language', 'Auto-detect');
+        localStorage.setItem('input_language', 'English');
     }
     if (!localStorage.getItem('output_language')) {
         localStorage.setItem('output_language', 'Arabic');
@@ -77,7 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const languages = [
-        "Auto-detect","Dutch", "Spanish", "Korean", "Italian", "German", "Thai", "Russian", "Portuguese", "Polish", "Indonesian",
+        // "Auto-detect",
+        "Dutch", "Spanish", "Korean", "Italian", "German", "Thai", "Russian", "Portuguese", "Polish", "Indonesian",
         "Mandarin (TW)", "Swedish", "Czech", "English", "Japanese", "French", "Romanian", "Cantonese (CN)", "Turkish",
         "Mandarin (CN)", "Catalan", "Hungarian", "Ukrainian", "Greek", "Bulgarian", "Arabic", "Serbian", "Macedonian",
         "Cantonese (HK)", "Latvian", "Slovenian", "Hindi", "Galician", "Danish", "Urdu", "Slovak", "Hebrew", "Finnish",
@@ -92,11 +94,9 @@ document.addEventListener('DOMContentLoaded', () => {
         "Gujarati", "Punjabi", "Bengali"
     ];
 
-    // Remove duplicates and sort alphabetically, but keep "Auto-detect" at the top
+    // Remove duplicates and sort alphabetically
     const uniqueLanguages = Array.from(new Set(languages));
     uniqueLanguages.sort((a, b) => {
-        if (a === "Auto-detect") return -1;
-        if (b === "Auto-detect") return 1;
         return a.localeCompare(b);
     });
 

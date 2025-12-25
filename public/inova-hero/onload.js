@@ -15,8 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('session_id', sessionId);
 
     // Set default languages in local storage if not already set
+    // Default input language is English instead of Auto-detect
     if (!localStorage.getItem('input_language')) {
-        localStorage.setItem('input_language', 'Auto-detect');
+        localStorage.setItem('input_language', 'English');
     }
     if (!localStorage.getItem('output_language')) {
         localStorage.setItem('output_language', 'Arabic');

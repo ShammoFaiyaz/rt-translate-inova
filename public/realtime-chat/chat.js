@@ -6,10 +6,20 @@ const today = new Date();
 const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 console.log('User Timezone:', userTimeZone);
 
-const formattedToday = today.toLocaleString('en-US', { timeZone: userTimeZone }).replace(',', '');  
+const formattedToday = today
+  .toLocaleString('en-US', { timeZone: userTimeZone })
+  .replace(',', '');
 
-const inputLanguage = localStorage.getItem('input_language');
-const outputLanguage = localStorage.getItem('output_language');
+// Ensure we always have concrete defaults for the Realtime system prompt,
+// even on a brand‑new visit where localStorage is still empty.
+const inputLanguage =
+  localStorage.getItem('input_language') || 'English';
+const outputLanguage =
+  localStorage.getItem('output_language') || 'Arabic';
+
+// Persist these defaults so the dropdown UI (onload.js) sees the same values.
+localStorage.setItem('input_language', inputLanguage);
+localStorage.setItem('output_language', outputLanguage);
 
 const sourceCode =
   !inputLanguage || inputLanguage === 'Auto-detect'

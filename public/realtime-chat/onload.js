@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const languages = [
 
-    'Auto-detect',
+    // 'Auto-detect', // removed from dropdowns
 
     'Dutch',
 
@@ -300,11 +300,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-  // Default languages if none set yet (match original behavior)
-
+  // Default languages if none set yet
+  // Default input language is English instead of Auto-detect
   if (!localStorage.getItem('input_language')) {
 
-    localStorage.setItem('input_language', 'Auto-detect');
+    localStorage.setItem('input_language', 'English');
 
   }
 
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore selected languages from localStorage
 
-  const storedInput = localStorage.getItem('input_language') || 'Auto-detect';
+  const storedInput = localStorage.getItem('input_language') || 'English';
 
   const storedOutput = localStorage.getItem('output_language') || 'Arabic';
 
