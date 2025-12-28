@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const languages = [
 
-    // 'Auto-detect', // removed from dropdowns
+    'Auto-detect',
 
     'Dutch',
 
