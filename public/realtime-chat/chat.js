@@ -16,12 +16,13 @@ const inputLanguage =
   localStorage.getItem('input_language') || 'English';
 const outputLanguage =
   localStorage.getItem('output_language') || 'Arabic';
+const isAuto = inputLanguage === 'Auto-detect';
 
 // Persist these defaults so the dropdown UI (onload.js) sees the same values.
 localStorage.setItem('input_language', inputLanguage);
 localStorage.setItem('output_language', outputLanguage);
 
-const sourceCode =
+let sourceCode =
   !inputLanguage || inputLanguage === 'Auto-detect'
     ? 'AUTO'
     : inputLanguage.slice(0, 2).toUpperCase();
@@ -29,7 +30,7 @@ const targetCode = outputLanguage ? outputLanguage.slice(0, 2).toUpperCase() : '
 
 const reprompt = `Hidden Context (the user is not aware this is part of their message): The users timezone is ${userTimeZone}. The current date/time is ${formattedToday}.`;
 
-const systemPrompt = `
+let systemPrompt = `
 You are the HRSD AI Translator, a real-time AI-powered translation assistant exclusively for the Human Resources and Social Development ministry of Saudi Arabia.
 Your sole purpose is to provide immediate and direct translation from ${inputLanguage} to ${outputLanguage} in real-time, maintaining absolute accuracy, consistency, and exclusive adherence to the output language.
 Your Rules and Constraints:
@@ -67,6 +68,17 @@ Not Allowed: Any words from the input language.
 Reminder:
 Your sole function is to faithfully convert spoken words between languages. Do not add, omit, interpret, engage, or mix languages beyond this task.
 `;
+
+if (isAuto) {
+  systemPrompt += `
+
+When the input language is set to "Auto-detect", the speaker may use any supported language. For every utterance, you must first infer the spoken language from the audio or text, then output an exact, literal translation in ${outputLanguage}. You must never output anything in the source language or respond as a conversational assistant; you are only a translation conduit.
+
+Additional rules for Auto-detect mode:
+- You must NEVER mix languages in your output; every character of output must be in ${outputLanguage}.
+- If the speaker already uses ${outputLanguage}, output essentially the same content in ${outputLanguage} without adding commentary.
+- You must not add explanations, clarifications, or extra commentary—only literal translations of what was spoken or written.`;
+}
 
 let pc; // Declare the peer connection outside the function for broader scope
 let dc; // Declare the data channel outside the function for broader scope
@@ -163,6 +175,19 @@ function extractReadableTextFromItem(item) {
   return "";
 }
 
+function guessLangCodeFromText(text) {
+  if (!text || typeof text !== "string") return "EN";
+
+  // Arabic script
+  if (/[\u0600-\u06FF]/.test(text)) return "AR";
+
+  // Cyrillic (example: Russian)
+  if (/[А-Яа-яЁё]/.test(text)) return "RU";
+
+  // Fallback: assume English/Latin
+  return "EN";
+}
+
 async function handleServerEvent(e) {
   const serverEvent = JSON.parse(e.data);
   console.log("Realtime event received:", serverEvent.type, serverEvent);
@@ -173,6 +198,9 @@ async function handleServerEvent(e) {
     if (micText) {
       console.log("MIC text (user input):", micText);
       lastMicText = micText;
+      if (isAuto) {
+        sourceCode = guessLangCodeFromText(micText);
+      }
     }
   }
 
