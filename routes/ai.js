@@ -9,12 +9,18 @@ const puppeteer = require('puppeteer');
 // const fetch = require('node-fetch');
 const axios = require('axios');
 
-// Initialize OpenAI client
+// Initialize OpenAI client for local Ollama-compatible usage
 const openai = new OpenAI({
-    // apiKey: process.env.OPENAI_API_KEY
+    // NOTE: This client is configured to talk to a local Ollama server,
+    // emulating the OpenAI API for chat and audio in this app.
     baseURL: 'http://localhost:11434/v1',
     apiKey: 'ollama'
 });   
+
+// Separate OpenAI client for calling the official OpenAI API (used for back-translation)
+const openaiOfficial = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
 
 // Middleware to parse JSON bodies
 router.use(express.json());
@@ -502,6 +508,42 @@ router.post('/clean-html', async (req, res) => {
     } catch (error) {
         console.error('Clean HTML API Error:', error);
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Back-translation endpoint
+router.post('/backtranslate', async (req, res) => {
+    try {
+        const { text, sourceLang, targetLang } = req.body || {};
+
+        if (!text || !sourceLang || !targetLang) {
+            return res.status(400).json({
+                error: 'text, sourceLang, and targetLang are required'
+            });
+        }
+
+        const completion = await openaiOfficial.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+                {
+                    role: 'system',
+                    content: `You are a literal back-translation engine. Translate the given text from ${sourceLang} to ${targetLang}. Output ONLY the translated text, with no quotes, prefixes, or explanations.`
+                },
+                {
+                    role: 'user',
+                    content: text
+                }
+            ],
+            temperature: 0
+        });
+
+        const message = completion.choices?.[0]?.message?.content || '';
+        const backtranslated = (message || '').trim();
+
+        res.json({ backtranslated });
+    } catch (error) {
+        console.error('Backtranslate API Error:', error);
+        res.status(500).json({ error: 'Failed to backtranslate text' });
     }
 });
 

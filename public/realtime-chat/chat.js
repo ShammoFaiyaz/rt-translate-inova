@@ -55,7 +55,9 @@ No Use of Input Language: Under no circumstances should the input language or an
 Important Notes:
 You are a conduit, not a communicator. Your role is strictly to bridge languages without any personal input or judgment.
 The user likely does not know the ${outputLanguage} and relies entirely on your translations, so any form of additional communication or clarification is strictly forbidden.
-You must exclusively use the output language. Do not mix languages or use words from the input language.
+You must exclusively use the output language. Do not mix languages or use words from the input language in any spoken translation output.
+You must NEVER speak the input text aloud, even briefly or as an echo; the audio should ONLY contain the translated output in ${outputLanguage}.
+However, for logging only, you are allowed to include the original recognized text in the input language in a structured JSON field described below. This JSON text is for internal logs ONLY and MUST NOT be spoken out loud or used as audio content.
 Example Behavior:
 If the user says: "Can you tell me where the office is?"
 Output: The exact translation of the question in the ${outputLanguage}.
@@ -67,6 +69,28 @@ Not Allowed: An explanation of the word or its meaning.
 Not Allowed: Any words from the input language.
 Reminder:
 Your sole function is to faithfully convert spoken words between languages. Do not add, omit, interpret, engage, or mix languages beyond this task.
+
+Structured logging requirement:
+For each user utterance, in addition to any audio output, you must emit EXACTLY ONE text message whose ENTIRE content is a pure JSON object with this shape:
+{"input_text": "<the exact translation of output_text back into the configured input language (${inputLanguage}) for logging and UI display only>", "output_text": "<the exact literal translation of the user’s utterance in ${outputLanguage} only>"}.
+Important rules for this JSON:
+- This logging message MUST contain ONLY the JSON object. There must be NO other characters, words, or sentences before or after the JSON (no labels, no explanations, no extra punctuation).
+- The "input_text" field MUST be written entirely in the configured input language (${inputLanguage}) and MUST represent a faithful back‑translation of "output_text". It does NOT need to match the raw mic transcript word-for-word; it is allowed to be a natural, literal rendering of "output_text" back into ${inputLanguage} for display.
+- The "output_text" field MUST obey all translation rules above and MUST be strictly in ${outputLanguage}.
+- Do NOT include any extra keys.
+- Do NOT wrap the JSON in backticks, code fences, or prose.
+- Do NOT prepend or append any other natural-language text before or after the JSON.
+- Do NOT add explanations or commentary in or around the JSON.
+
+Example of a CORRECT JSON logging message:
+{"input_text": "Hello.", "output_text": "Bonjour."}
+
+Examples of INCORRECT messages (DO NOT DO THESE):
+- The translation is {"input_text": "Hello.", "output_text": "Bonjour."}
+- {"input_text": "Hello.", "output_text": "Bonjour."} This is the translation.
+- The JSON object wrapped in code fences or formatted as code instead of plain text.
+
+The spoken audio response should correspond ONLY to the "output_text" content, never to the JSON itself or the "input_text". Do NOT read "input_text" aloud under any circumstances.
 `;
 
 if (isAuto) {
@@ -216,34 +240,97 @@ async function handleServerEvent(e) {
     }
 
     const outputItems = serverEvent.response?.output || [];
-    const primaryItem = outputItems[0];
-    const displayText = extractReadableTextFromItem(primaryItem) || "";
 
-    console.log("Parsed display text from response:", displayText, "raw item:", primaryItem);
+    // Log raw items so we can see exactly what the model is returning
+    console.log("Realtime raw output items:", outputItems);
 
-    // Build combined display string: "<mic> (SRC) - <translation> (TGT)"
-    let combinedText = displayText;
-    if (displayText) {
-      if (lastMicText) {
-        combinedText = `${lastMicText} (${sourceCode}) - ${displayText} (${targetCode})`;
-      } else {
-        // Fallback if we don't have mic text (e.g. typed input)
-        combinedText = `${displayText} (${targetCode})`;
+    // Collect all readable text snippets from the response
+    const textItems = [];
+    for (const item of outputItems) {
+      const candidate = extractReadableTextFromItem(item);
+      if (candidate) {
+        textItems.push(candidate);
       }
+    }
+
+    // Log the flattened readable text payloads for debugging JSON compliance
+    console.log("Realtime extracted textItems:", textItems);
+
+    // Derive OUTPUT text (main translation) from the first readable text item.
+    // If the model appended JSON (e.g. {"input_text":...,"output_text":...}),
+    // strip it off so we only keep the natural-language translation segment.
+    let outputText = "";
+    if (textItems.length > 0) {
+      const raw = textItems[0];
+      const braceIndex = raw.indexOf("{");
+      if (braceIndex !== -1) {
+        const jsonCandidate = raw.slice(braceIndex).trim();
+        try {
+          const asJson = JSON.parse(jsonCandidate);
+          if (asJson && typeof asJson === "object" && typeof asJson.output_text === "string") {
+            outputText = asJson.output_text.trim();
+          } else {
+            // Fallback: use the part before the JSON if it exists
+            outputText = raw.slice(0, braceIndex).trim() || raw;
+          }
+        } catch {
+          // Not valid JSON; just use the text before the brace if present
+          outputText = raw.slice(0, braceIndex).trim() || raw;
+        }
+      } else {
+        outputText = raw;
+      }
+    }
+
+    // Compute INPUT text via a separate back-translation call.
+    // Start empty so we prioritize the explicit back-translation result.
+    let inputText = "";
+    if (outputText) {
+      const backtranslated = await backtranslateText(outputText);
+      if (backtranslated && typeof backtranslated === "string") {
+        inputText = backtranslated;
+      }
+    }
+
+    // If back-translation failed, fall back to mic transcript if available,
+    // otherwise mirror the translation so the UI still shows a pair.
+    if (!inputText && lastMicText) {
+      inputText = lastMicText;
+    }
+    if (!inputText && outputText) {
+      inputText = outputText;
+    }
+
+    // Subtitle should show a 2‑line live transcript:
+    // 1st line: backtranslated text in input language
+    // 2nd line: translated text in output language
+    let combinedText = "";
+    if (inputText && outputText) {
+      // Both available: show input then output on separate lines
+      combinedText = `${inputText} (${sourceCode})\n${outputText} (${targetCode})`;
+    } else if (outputText) {
+      // Fallback: only output known
+      combinedText = `${outputText} (${targetCode})`;
+    } else if (inputText) {
+      // Rare case: only input known
+      combinedText = `${inputText} (${sourceCode})`;
     }
 
     const subtitleEl = document.getElementById('subtitleText');
     if (subtitleEl && combinedText) {
+      // Use textContent; newline characters will render as separate lines
       subtitleEl.textContent = combinedText;
     }
 
-    // Also append to the conversation log panel if available
-    if (combinedText) {
-      appendTranscriptToConversation(combinedText);
+    // Append clearly separated INPUT / OUTPUT bubbles to the Conversation log
+    if (inputText || outputText) {
+      appendExchangeToConversation(inputText, outputText, sourceCode, targetCode);
     }
 
-    if (primaryItem && primaryItem.type === "function_call") {
-      const { name, arguments, call_id } = primaryItem;
+    // Handle any tool calls in the response output
+    const toolItem = outputItems.find(item => item && item.type === "function_call");
+    if (toolItem && toolItem.type === "function_call") {
+      const { name, arguments, call_id } = toolItem;
       console.log('its a tool call');
       let args = JSON.parse(arguments);
       let result;
@@ -307,20 +394,85 @@ async function handleServerEvent(e) {
   }
 }
 
-function appendTranscriptToConversation(text) {
-  const body = document.getElementById("conversation-body");
-  if (!body || !text) return;
-
+function createConversationBubble(role, text, langCode) {
   const wrapper = document.createElement("div");
-  wrapper.className = "bubble bubble--inmate";
+
+  // role: "input" | "output"
+  if (role === "input") {
+    wrapper.className = "bubble bubble--input";
+  } else {
+    // Default to output styling (blue)
+    wrapper.className = "bubble bubble--output";
+  }
+
+  // Small label row, e.g. "Input · FR" or "Output · EN"
+  const labelEl = document.createElement("div");
+  labelEl.className = `bubble-label bubble-label--${role}`;
+  labelEl.textContent = langCode ? `${role === "input" ? "Input" : "Output"} · ${langCode}` : (role === "input" ? "Input" : "Output");
+  wrapper.appendChild(labelEl);
 
   const p = document.createElement("p");
   p.className = "bubble-text--primary";
   p.textContent = text;
-
   wrapper.appendChild(p);
-  body.appendChild(wrapper);
+
+  return wrapper;
+}
+
+function appendExchangeToConversation(inputText, outputText, sourceLangCode, targetLangCode) {
+  const body = document.getElementById("conversation-body");
+  if (!body) return;
+
+  // Input (gray) bubble, if we have mic text
+  if (inputText) {
+    const inputBubble = createConversationBubble("input", inputText, sourceLangCode);
+    body.appendChild(inputBubble);
+  }
+
+  // Output (blue) bubble, if we have translation text
+  if (outputText) {
+    const outputBubble = createConversationBubble("output", outputText, targetLangCode);
+    body.appendChild(outputBubble);
+  }
+
   body.scrollTop = body.scrollHeight;
+}
+
+// Fallback helper kept for any existing callers that just pass a single text string
+function appendTranscriptToConversation(text) {
+  if (!text) return;
+  appendExchangeToConversation("", text, "", targetCode);
+}
+
+async function backtranslateText(text) {
+  try {
+    const response = await fetch("/ai/backtranslate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text,
+        sourceLang: outputLanguage,
+        targetLang: inputLanguage,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Backtranslate request failed with status:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    if (data && typeof data.backtranslated === "string" && data.backtranslated.trim()) {
+      return data.backtranslated.trim();
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error during backtranslation:", error);
+    return null;
+  }
 }
 
 function displayTextResponse(text) {
