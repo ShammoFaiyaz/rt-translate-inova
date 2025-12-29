@@ -1298,7 +1298,10 @@ div#loadingScreen {
 }
 
 .bubble {
-  max-width: 100%;
+  /* Reduce horizontal length so bubbles don't span full width */
+  max-width: 50%;
+  /* Default margins; specific alignment is handled per type + direction below */
+  margin: 0;
   border-radius: 14px;
   padding: 8px 10px;
   font-size: 13px;
@@ -1350,6 +1353,32 @@ div#loadingScreen {
   color: #1d4ed8;
 }
 
+/* Alignment rules for bubbles:
+   - In LTR UI (English toggle):
+       - Human Input bubbles are left-aligned
+       - AI Translation bubbles are right-aligned
+   - In RTL UI (Arabic toggle), this is reversed. */
+
+[dir="ltr"] .bubble--input {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+[dir="ltr"] .bubble--output {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+[dir="rtl"] .bubble--input {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+[dir="rtl"] .bubble--output {
+  margin-right: auto;
+  margin-left: 0;
+}
+
 .bubble-meta {
   display: flex;
   justify-content: space-between;
@@ -1365,6 +1394,19 @@ div#loadingScreen {
 .bubble-text--primary {
   margin: 0 0 2px;
   font-weight: 500;
+}
+
+/* When UI is RTL, keep bubble text content as-is but right-align it
+   so it reads more naturally from right to left without changing punctuation */
+[dir="rtl"] .bubble-text--primary {
+  text-align: right;
+}
+
+/* When UI is LTR (English toggle), always left-align bubble text, even if
+   the content itself is Arabic. This keeps both Human Input and AI Translation
+   anchored on the left in LTR mode. */
+[dir="ltr"] .bubble-text--primary {
+  text-align: left;
 }
 
 .bubble-text--secondary {

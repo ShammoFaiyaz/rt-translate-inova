@@ -405,14 +405,19 @@ function createConversationBubble(role, text, langCode) {
     wrapper.className = "bubble bubble--output";
   }
 
-  // Small label row, e.g. "Input · FR" or "Output · EN"
+  // Small label row, e.g. "Human Input · FR" or "AI Translation · EN"
   const labelEl = document.createElement("div");
   labelEl.className = `bubble-label bubble-label--${role}`;
-  labelEl.textContent = langCode ? `${role === "input" ? "Input" : "Output"} · ${langCode}` : (role === "input" ? "Input" : "Output");
+  const baseLabel = role === "input" ? "Human Input" : "AI Translation";
+  labelEl.textContent = langCode ? `${baseLabel} · ${langCode}` : baseLabel;
   wrapper.appendChild(labelEl);
 
   const p = document.createElement("p");
   p.className = "bubble-text--primary";
+  // Let the browser infer proper LTR/RTL direction per message content
+  // so punctuation like "Hello." renders in the correct order even when
+  // the overall UI is RTL.
+  p.dir = "auto";
   p.textContent = text;
   wrapper.appendChild(p);
 
