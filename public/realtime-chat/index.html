@@ -11,7 +11,7 @@
     <main class="app-shell">
       <!-- Top header (desktop layout + mobile hamburger menu wrapper) -->
       <header class="app-header">
-        <!-- Mobile / tablet sticky bar with hamburger -->
+        <!-- Mobile / tablet sticky bar with hamburger + back button -->
         <div class="mobile-header-bar">
           <button
             type="button"
@@ -23,6 +23,14 @@
             <span class="mobile-menu-line"></span>
             <span class="mobile-menu-line"></span>
             <span class="mobile-menu-line"></span>
+          </button>
+          <button
+            type="button"
+            id="mobile-back-button"
+            class="mobile-back-toggle"
+            aria-label="Back to status screen"
+          >
+            <span class="mobile-back-icon"></span>
           </button>
           <span class="mobile-header-label">Inova Translator</span>
         </div>

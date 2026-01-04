@@ -328,17 +328,25 @@ div#loadingScreen {
   display: none;
 }
 
-.mobile-menu-toggle {
+.mobile-menu-toggle,
+.mobile-back-toggle {
   border: none;
   background: transparent;
   padding: 6px 8px;
   border-radius: 999px;
   display: inline-flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 3px;
   cursor: pointer;
+}
+
+.mobile-back-toggle {
+  display: none;
+}
+
+.mobile-menu-toggle {
+  flex-direction: column;
+  gap: 3px;
 }
 
 .mobile-menu-line {
@@ -353,6 +361,14 @@ div#loadingScreen {
   font-size: 13px;
   font-weight: 600;
   color: #ffffff;
+}
+
+.mobile-back-icon {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(135deg); /* simple chevron arrow pointing left */
 }
 
 .app-header--open .mobile-menu-line:nth-child(1) {
@@ -973,8 +989,8 @@ div#loadingScreen {
 
   .identity-accordion-header {
     width: 100%;
-    /* Single-line height when collapsed, with slightly taller touch target */
-    padding: 4px 14px;
+    /* Slightly taller touch target, supports multi-line summary */
+    padding: 6px 14px;
     border: none;
     background: #ffffff;
     display: flex;
@@ -988,6 +1004,34 @@ div#loadingScreen {
 
   .identity-accordion-title {
     color: #111827;
+    display: flex;
+    flex-direction: column;
+  }
+
+  [dir='rtl'] .identity-accordion-title {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  [dir='ltr'] .identity-accordion-title {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .identity-accordion-title-main {
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .identity-accordion-title-meta {
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  /* When accordion is expanded, hide the summary lines to avoid duplication
+     with the full details shown in the body */
+  .identity-accordion-card--open .identity-accordion-title-meta {
+    display: none;
   }
 
   .identity-accordion-chevron {
@@ -1190,6 +1234,10 @@ div#loadingScreen {
   border-radius: 12px;
   background: #f9fafb;
   border: 1px solid rgba(209, 213, 219, 0.9);
+  /* Center the subtitle text vertically within the box */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .subtitle-text {
@@ -1198,6 +1246,9 @@ div#loadingScreen {
   color: #111827;
   /* Preserve newlines from JS so backtranslated and translated lines appear on separate rows */
   white-space: pre-line;
+  /* Slightly tighter line-height so the two lines sit more visually centered
+     between the top and bottom padding of the subtitle strip */
+  line-height: 1.2;
 }
 
 .conversation-section {
@@ -1658,18 +1709,26 @@ div#loadingScreen {
   .mobile-header-bar {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
+  }
+
+  .mobile-menu-toggle,
+  .mobile-back-toggle {
     width: 44px;
     height: 44px;
     padding: 0;
     border-radius: 999px;
     background: #0ea5e9; /* match Ready text accent */
     box-shadow: 0 12px 28px rgba(14, 165, 233, 0.55);
-    margin-left: 4px;
   }
 
   .mobile-header-label {
     display: none;
+  }
+
+  /* Hide in-panel Back pill on mobile/tablet; use header back button instead */
+  .top-pill--back {
+    display: none !important;
   }
 
   .app-header-inner {

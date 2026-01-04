@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const startButton = document.getElementById('start-session-btn');
 
   const backButton = document.getElementById('back-to-status');
+  const mobileBackButton = document.getElementById('mobile-back-button');
 
   const readyWrapper = document.getElementById('ready-button-wrapper');
 
@@ -300,11 +301,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-  // Default languages if none set yet
-  // Default input language is English instead of Auto-detect
+  // Default languages if none set yet (match original behavior)
+
   if (!localStorage.getItem('input_language')) {
 
-    localStorage.setItem('input_language', 'English');
+    localStorage.setItem('input_language', 'Auto-detect');
 
   }
 
@@ -354,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore selected languages from localStorage
 
-  const storedInput = localStorage.getItem('input_language') || 'English';
+  const storedInput = localStorage.getItem('input_language') || 'Auto-detect';
 
   const storedOutput = localStorage.getItem('output_language') || 'Arabic';
 
@@ -574,6 +575,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       screenLive.classList.add('screen--active');
 
+      // Show mobile back button only on the live screen (mobile/tablet)
+      if (mobileBackButton) {
+        mobileBackButton.style.display = 'inline-flex';
+      }
+
       // Ensure viewport starts at the very top (hamburger visible) on mobile/tablet
       window.scrollTo({
         top: 0,
@@ -588,29 +594,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ----- Navigation: Live screen → Status screen -----
 
-  if (backButton && screenLoading && screenLive) {
+  function handleBackToStatus() {
 
-    backButton.addEventListener('click', () => {
+    // Stop any active realtime session
 
-      // Stop any active realtime session
+    if (window.pc && window.pc.connectionState === 'connected') {
 
-      if (window.pc && window.pc.connectionState === 'connected') {
+      if (typeof stopSession === 'function') {
 
-        if (typeof stopSession === 'function') {
-
-          stopSession();
-
-        }
-
-        if (conversationSection) conversationSection.classList.add('hidden');
-
-        if (micStatus) micStatus.classList.add('hidden');
+        stopSession();
 
       }
 
+      if (conversationSection) conversationSection.classList.add('hidden');
+
+      if (micStatus) micStatus.classList.add('hidden');
+
+    }
 
 
-      // Switch screens
+
+    // Switch screens
+
+    if (screenLive && screenLoading) {
 
       screenLive.classList.remove('screen--active');
 
@@ -619,6 +625,35 @@ document.addEventListener('DOMContentLoaded', () => {
       screenLoading.classList.remove('screen--hidden');
 
       screenLoading.classList.add('screen--active');
+
+      // Hide mobile back button again on the status screen
+      if (mobileBackButton) {
+        mobileBackButton.style.display = 'none';
+      }
+
+    }
+
+  }
+
+
+
+  if (backButton && screenLoading && screenLive) {
+
+    backButton.addEventListener('click', () => {
+
+      handleBackToStatus();
+
+    });
+
+  }
+
+
+
+  if (mobileBackButton && screenLoading && screenLive) {
+
+    mobileBackButton.addEventListener('click', () => {
+
+      handleBackToStatus();
 
     });
 
@@ -703,14 +738,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (micStatus) micStatus.classList.remove('hidden');
 
         startMicDots();
-
-        // After mic permissions are granted and the session starts,
-        // scroll the viewport all the way down so the user sees
-        // the live transcript and notes area.
-        window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior: 'smooth',
-        });
 
       }
 
@@ -1228,6 +1255,156 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
+      // Mobile identity details (accordion bodies) – translate labels/text
+      const officerMobileBody = document.getElementById('identity-officer-body');
+      if (officerMobileBody) {
+        const rows = officerMobileBody.querySelectorAll('.identity-detail-row');
+        if (rows.length >= 6) {
+          // Name
+          const nameDt = rows[0].querySelector('dt');
+          const nameDd = rows[0].querySelector('dd');
+          if (nameDt) nameDt.textContent = t('Name', 'الاسم');
+          if (nameDd) {
+            nameDd.textContent = t('Lt. Faisal Al-Harbi', 'الملازم فيصل الحربي');
+          }
+
+          // Badge
+          const badgeDt = rows[1].querySelector('dt');
+          if (badgeDt) badgeDt.textContent = t('Badge', 'الرقم الوظيفي');
+
+          // Designation
+          const desigDt = rows[2].querySelector('dt');
+          const desigDd = rows[2].querySelector('dd');
+          if (desigDt) desigDt.textContent = t('Designation', 'المسمى الوظيفي');
+          if (desigDd) {
+            desigDd.textContent = t(
+              'Corrections officer · Block C Security',
+              'ضابط إصلاحيات · أمن العنبر C'
+            );
+          }
+
+          // Primary role
+          const roleDt = rows[3].querySelector('dt');
+          const roleDd = rows[3].querySelector('dd');
+          if (roleDt) roleDt.textContent = t('Primary role', 'الدور الرئيسي');
+          if (roleDd) {
+            roleDd.textContent = t('Primary communicator', 'المتحدّث الرئيسي');
+          }
+
+          // Age
+          const ageDt = rows[4].querySelector('dt');
+          if (ageDt) ageDt.textContent = t('Age', 'العمر');
+
+          // Primary language
+          const langDt = rows[5].querySelector('dt');
+          if (langDt) langDt.textContent = t('Primary language', 'اللغة الرئيسية');
+        }
+      }
+
+      const inmateMobileBody = document.getElementById('identity-inmate-body');
+      if (inmateMobileBody) {
+        const rows = inmateMobileBody.querySelectorAll('.identity-detail-row');
+        if (rows.length >= 7) {
+          // Name
+          const nameDt = rows[0].querySelector('dt');
+          const nameDd = rows[0].querySelector('dd');
+          if (nameDt) nameDt.textContent = t('Name', 'الاسم');
+          if (nameDd) {
+            nameDd.textContent = t('John Michael Rivera', 'جون مايكل ريفيرا');
+          }
+
+          // ID
+          const idDt = rows[1].querySelector('dt');
+          if (idDt) idDt.textContent = t('ID', 'هوية النزيل');
+
+          // Current status
+          const statusDt = rows[2].querySelector('dt');
+          const statusDd = rows[2].querySelector('dd');
+          if (statusDt) statusDt.textContent = t('Current status', 'الحالة الحالية');
+          if (statusDd) {
+            statusDd.textContent = t(
+              'Pre-trial hold · Medical observation',
+              'احتجاز قبل المحاكمة · ملاحظة طبية'
+            );
+          }
+
+          // Charges
+          const chargesDt = rows[3].querySelector('dt');
+          const chargesDd = rows[3].querySelector('dd');
+          if (chargesDt) chargesDt.textContent = t('Charges', 'التهم');
+          if (chargesDd) {
+            chargesDd.textContent = t(
+              'Possession · Disturbance of peace',
+              'حيازة · الإخلال بالسكينة العامة'
+            );
+          }
+
+          // Age
+          const ageDt = rows[4].querySelector('dt');
+          if (ageDt) ageDt.textContent = t('Age', 'العمر');
+
+          // Language
+          const langDt = rows[5].querySelector('dt');
+          if (langDt) langDt.textContent = t('Language', 'اللغة');
+
+          // Notes
+          const notesDt = rows[6].querySelector('dt');
+          const notesDd = rows[6].querySelector('dd');
+          if (notesDt) notesDt.textContent = t('Notes', 'ملاحظات');
+          if (notesDd) {
+            notesDd.textContent = t(
+              'Cardiac risk · Current chest pain',
+              'خطر قلبي · ألم صدري حالي'
+            );
+          }
+        }
+      }
+
+      // Mobile accordion headers: officer/inmate summary (name + badge/ID)
+      const officerHeaderTitle = document.querySelector(
+        '.identity-accordion-header[data-identity="officer"] .identity-accordion-title'
+      );
+      const officerNameCell = officerCard
+        ? officerCard.querySelector('.identity-table tbody tr:nth-child(1) td')
+        : null;
+      const officerBadgeCell = officerCard
+        ? officerCard.querySelector('.identity-table tbody tr:nth-child(2) td')
+        : null;
+      if (officerHeaderTitle && officerNameCell && officerBadgeCell) {
+        const baseTitle = t('Information of the Officer', 'معلومات الضابط');
+        const nameLabel = t('Name:', 'الاسم:');
+        const badgeLabel = t('Badge:', 'الرقم الوظيفي:');
+        const nameText = officerNameCell.textContent.trim();
+        const badgeText = officerBadgeCell.textContent.trim();
+        officerHeaderTitle.innerHTML = `
+          <span class="identity-accordion-title-main">${baseTitle}</span>
+          <span class="identity-accordion-title-meta">${nameLabel} ${nameText}</span>
+          <span class="identity-accordion-title-meta">${badgeLabel} ${badgeText}</span>
+        `;
+      }
+
+      const inmateHeaderTitle = document.querySelector(
+        '.identity-accordion-header[data-identity="inmate"] .identity-accordion-title'
+      );
+      const inmateNameCell = inmateCard
+        ? inmateCard.querySelector('.identity-table tbody tr:nth-child(1) td')
+        : null;
+      const inmateIdCell = inmateCard
+        ? inmateCard.querySelector('.identity-table tbody tr:nth-child(2) td')
+        : null;
+      if (inmateHeaderTitle && inmateNameCell && inmateIdCell) {
+        const baseTitle = t('Information of the Inmate', 'معلومات النزيل');
+        const nameLabel = t('Name:', 'الاسم:');
+        const idLabelText = t('ID:', 'هوية النزيل:');
+        const nameText = inmateNameCell.textContent.trim();
+        const idText = inmateIdCell.textContent.trim();
+        inmateHeaderTitle.innerHTML = `
+          <span class="identity-accordion-title-main">${baseTitle}</span>
+          <span class="identity-accordion-title-meta">${nameLabel} ${nameText}</span>
+          <span class="identity-accordion-title-meta">${idLabelText} ${idText}</span>
+        `;
+      }
+
       // Back button + mode pill
       const backLabel = document.querySelector('#back-to-status span:last-child');
       if (backLabel) {
@@ -1258,22 +1435,6 @@ document.addEventListener('DOMContentLoaded', () => {
         quickActionsTitle.textContent = t('Quick actions', 'إجراءات سريعة');
       }
 
-      const conversationSubheading = document.querySelector('.conversation-subheading');
-      if (conversationSubheading) {
-        conversationSubheading.textContent = t(
-          'Live transcript of the officer–inmate dialogue for this session.',
-          'النص الحي للمحادثة بين الضابط والنزيل في هذه الجلسة.'
-        );
-      }
-
-      const notesSubheading = document.querySelector('.notes-subheading');
-      if (notesSubheading) {
-        notesSubheading.textContent = t(
-          'Use this area to capture clinical observations, risks, and follow-up actions.',
-          'استخدم هذه المساحة لتسجيل الملاحظات السريرية ومخاطر الحالة وإجراءات المتابعة.'
-        );
-      }
-
       const notesHint = document.querySelector('.session-hint');
       if (notesHint) {
         notesHint.textContent = t(
@@ -1290,21 +1451,21 @@ document.addEventListener('DOMContentLoaded', () => {
         );
       }
 
-      // Conversation meta (session label)
-      const convoMeta = document.querySelector('.conversation-meta');
-      if (convoMeta) {
-        convoMeta.textContent = t(
-          'Session 1 · Medical intake',
-          'الجلسة 1 · فحص طبي'
-        );
-      }
-
       // Quick action buttons
       const quickActionButtons = document.querySelectorAll('.session-quick-actions .session-chip');
       if (quickActionButtons.length >= 3) {
         quickActionButtons[0].textContent = t('Flag medical risk', 'الإشارة إلى خطر طبي');
         quickActionButtons[1].textContent = t('Escalate to supervisor', 'تصعيد إلى المشرف');
         quickActionButtons[2].textContent = t('Mark for follow-up', 'وضع علامة للمتابعة');
+      }
+
+      // Session meta under conversation title
+      const conversationMeta = document.querySelector('.conversation-meta');
+      if (conversationMeta) {
+        conversationMeta.textContent = t(
+          'Session 1 · Medical intake',
+          'الجلسة 1 · الفحص الطبي الأولي'
+        );
       }
 
       // Mic live label
@@ -1454,9 +1615,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Mobile identity accordions (collapsed by default)
     const identityAccordionHeaders = document.querySelectorAll(
-
       '.identity-accordion-header'
-
     );
 
     identityAccordionHeaders.forEach((header) => {
