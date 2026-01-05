@@ -317,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-  // Populate the two dropdowns with the original language list
+  // Populate the two dropdowns with the original language list (alphabetically, de-duplicated)
 
   if (officerLangSelect && inmateLangSelect) {
 
@@ -325,9 +325,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     inmateLangSelect.innerHTML = '';
 
+    // Keep "Auto-detect" as a special first option
+    const baseLanguages = languages.filter(
+      (lang) => lang && lang !== 'Auto-detect'
+    );
 
+    // Remove duplicates while preserving the actual language strings
+    const uniqueLanguages = [...new Set(baseLanguages)];
 
-    languages.forEach((language) => {
+    // Sort alphabetically without mutating the original source array
+    const sortedLanguages = uniqueLanguages.sort((a, b) =>
+      a.localeCompare(b, 'en', { sensitivity: 'base' })
+    );
+
+    const finalLanguages = ['Auto-detect', ...sortedLanguages];
+
+    finalLanguages.forEach((language) => {
 
       const opt1 = document.createElement('option');
 
@@ -405,8 +418,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const outputCode = storedOutput.slice(0, 2).toUpperCase();
 
-    telemetryLangs.textContent = `${inputCode} ⇄ ${outputCode}`;
+    // Store language codes so the UI language toggle can localize labels
+    telemetryLangs.dataset.inputCode = inputCode;
+    telemetryLangs.dataset.outputCode = outputCode;
 
+    telemetryLangs.textContent = `Input: ${inputCode} | Output: ${outputCode}`;
+
+  }
+
+
+
+  // Initialize language summary pill above the mic (static codes; labels localized in applyUiLang)
+  const summaryInputEl = document.querySelector('.language-summary-line--input');
+  const summaryOutputEl = document.querySelector('.language-summary-line--output');
+  if (summaryInputEl && summaryOutputEl) {
+    const initialInputCode =
+
+      storedInput === 'Auto-detect'
+
+        ? 'AUTO'
+
+        : storedInput.slice(0, 2).toUpperCase();
+
+    const initialOutputCode = storedOutput.slice(0, 2).toUpperCase();
+
+    summaryInputEl.dataset.inputCode = storedInput;
+    summaryInputEl.dataset.code = initialInputCode;
+    summaryOutputEl.dataset.outputCode = storedOutput;
+    summaryOutputEl.dataset.code = initialOutputCode;
   }
 
 
@@ -1115,7 +1154,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const langsLabelEl = langsItem.querySelector('.telemetry-label');
         if (langsLabelEl) langsLabelEl.textContent = t('Languages', 'اللغات');
-        // Value shows language codes; leave as-is
+
+        // Localize the languages value while keeping the codes themselves
+        const langsValueEl = langsItem.querySelector('.telemetry-value');
+        if (langsValueEl) {
+          const inCode = langsValueEl.dataset.inputCode || telemetryLangs?.dataset.inputCode || '??';
+          const outCode = langsValueEl.dataset.outputCode || telemetryLangs?.dataset.outputCode || '??';
+          langsValueEl.textContent =
+            lang === 'ar'
+              ? `المدخل: ${inCode} | المخرج: ${outCode}`
+              : `Input: ${inCode} | Output: ${outCode}`;
+        }
+      }
+
+      // Update language summary pill above mic based on current UI language
+      const summaryInputEl = document.querySelector('.language-summary-line--input');
+      const summaryOutputEl = document.querySelector('.language-summary-line--output');
+      if (summaryInputEl) {
+        const inputName = storedInput;
+
+        if (lang === 'ar') {
+          summaryInputEl.textContent = `يُرجى التحدث دائمًا باللغة ${inputName}.`;
+        } else {
+          summaryInputEl.textContent = `Please speak in ${inputName} at all times.`;
+        }
+      }
+
+      if (summaryOutputEl) {
+        summaryOutputEl.textContent = '';
       }
 
       // Location strip (keep room ID and numeric time as-is)
@@ -1425,9 +1491,25 @@ document.addEventListener('DOMContentLoaded', () => {
         conversationTitle.textContent = t('Conversation', 'المحادثة');
       }
 
+      const conversationSubheading = document.querySelector('.conversation-subheading');
+      if (conversationSubheading) {
+        conversationSubheading.textContent = t(
+          'Live transcript of the officer–inmate dialogue for this session.',
+          'النص الحي للمحادثة بين الضابط والنزيل في هذه الجلسة.'
+        );
+      }
+
       const notesTitle = document.querySelector('.notes-title');
       if (notesTitle) {
         notesTitle.textContent = t('Officer notes', 'ملاحظات الضابط');
+      }
+
+      const notesSubheading = document.querySelector('.notes-subheading');
+      if (notesSubheading) {
+        notesSubheading.textContent = t(
+          'Use this area to capture clinical observations, risks, and follow-up actions.',
+          'استخدم هذه المساحة لتسجيل الملاحظات السريرية ومخاطر الحالة وإجراءات المتابعة.'
+        );
       }
 
       const quickActionsTitle = document.querySelector('.session-notes-title');
