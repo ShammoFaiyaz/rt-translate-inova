@@ -428,24 +428,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-  // Initialize language summary pill above the mic (static codes; labels localized in applyUiLang)
-  const summaryInputEl = document.querySelector('.language-summary-line--input');
-  const summaryOutputEl = document.querySelector('.language-summary-line--output');
-  if (summaryInputEl && summaryOutputEl) {
-    const initialInputCode =
+  // Initialize language summary pill above the mic
+  const summaryStatusEl = document.querySelector('.language-summary-status');
+  const summaryFromEl = document.querySelector('.language-summary-from');
+  const summaryToEl = document.querySelector('.language-summary-to');
+  const summaryInstructionEl = document.querySelector('.language-summary-instruction');
 
-      storedInput === 'Auto-detect'
-
-        ? 'AUTO'
-
-        : storedInput.slice(0, 2).toUpperCase();
-
-    const initialOutputCode = storedOutput.slice(0, 2).toUpperCase();
-
-    summaryInputEl.dataset.inputCode = storedInput;
-    summaryInputEl.dataset.code = initialInputCode;
-    summaryOutputEl.dataset.outputCode = storedOutput;
-    summaryOutputEl.dataset.code = initialOutputCode;
+  if (summaryStatusEl) {
+    summaryStatusEl.textContent = 'Translator Ready';
+  }
+  if (summaryFromEl) {
+    summaryFromEl.textContent = `From: ${storedInput}`;
+  }
+  if (summaryToEl) {
+    summaryToEl.textContent = `To: ${storedOutput}`;
+  }
+  if (summaryInstructionEl) {
+    summaryInstructionEl.textContent = `Please speak in ${storedInput} at all times.`;
   }
 
 
@@ -746,6 +745,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     micButton.addEventListener('click', async () => {
 
+      const summaryStatusEl = document.querySelector('.language-summary-status');
+      const uiLang = localStorage.getItem('ui_lang') || 'en';
+
       if (window.pc && window.pc.connectionState === 'connected') {
 
         // Stop existing session
@@ -759,6 +761,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (conversationSection) conversationSection.classList.add('hidden');
 
         if (micStatus) micStatus.classList.add('hidden');
+
+        // When stopping translation, show "Translator Ready"
+        if (summaryStatusEl) {
+          summaryStatusEl.textContent =
+            uiLang === 'ar' ? 'المترجم جاهز' : 'Translator Ready';
+        }
 
         stopMicDots();
 
@@ -775,6 +783,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (conversationSection) conversationSection.classList.remove('hidden');
 
         if (micStatus) micStatus.classList.remove('hidden');
+
+        // When starting translation, show "Translation ongoing"
+        if (summaryStatusEl) {
+          summaryStatusEl.textContent =
+            uiLang === 'ar' ? 'الترجمة جارية' : 'Translation ongoing';
+        }
 
         startMicDots();
 
@@ -1168,20 +1182,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Update language summary pill above mic based on current UI language
-      const summaryInputEl = document.querySelector('.language-summary-line--input');
-      const summaryOutputEl = document.querySelector('.language-summary-line--output');
-      if (summaryInputEl) {
-        const inputName = storedInput;
+      const summaryStatusEl = document.querySelector('.language-summary-status');
+      const summaryFromEl = document.querySelector('.language-summary-from');
+      const summaryToEl = document.querySelector('.language-summary-to');
+      const summaryInstructionEl = document.querySelector('.language-summary-instruction');
 
-        if (lang === 'ar') {
-          summaryInputEl.textContent = `يُرجى التحدث دائمًا باللغة ${inputName}.`;
-        } else {
-          summaryInputEl.textContent = `Please speak in ${inputName} at all times.`;
-        }
+      if (summaryStatusEl) {
+        summaryStatusEl.textContent = t('Translator Ready', 'المترجم جاهز');
       }
 
-      if (summaryOutputEl) {
-        summaryOutputEl.textContent = '';
+      if (summaryFromEl && summaryToEl) {
+        const fromLabel = t('From', 'من');
+        const toLabel = t('To', 'إلى');
+        summaryFromEl.textContent = `${fromLabel}: ${storedInput}`;
+        summaryToEl.textContent = `${toLabel}: ${storedOutput}`;
+      }
+
+      if (summaryInstructionEl) {
+        const instrEn = `Please speak in ${storedInput} at all times.`;
+        const instrAr = `يرجى التحدث باللغة ${storedInput} طوال الوقت.`;
+        summaryInstructionEl.textContent = t(instrEn, instrAr);
       }
 
       // Location strip (keep room ID and numeric time as-is)

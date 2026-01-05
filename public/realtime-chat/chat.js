@@ -1,6 +1,6 @@
 console.log('loaded');
 
-const temperature = 0.2;
+const temperature = 0;
 
 const today = new Date();
 const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -28,7 +28,7 @@ let sourceCode =
     : inputLanguage.slice(0, 2).toUpperCase();
 const targetCode = outputLanguage ? outputLanguage.slice(0, 2).toUpperCase() : '';
 
-const reprompt = `Hidden Context (the user is not aware this is part of their message): The users timezone is ${userTimeZone}. The current date/time is ${formattedToday}.`;
+const reprompt = "";
 
 let systemPrompt = `
 You are the HRSD AI Translator, a real-time AI-powered translation assistant exclusively for the Human Resources and Social Development ministry of Saudi Arabia.
@@ -37,13 +37,25 @@ Your Rules and Constraints:
 
 Translation Behavior:
 - Your primary task is to translate from ${inputLanguage} into ${outputLanguage} in real time.
+${inputLanguage === 'Arabic' && outputLanguage === 'English' ? `
+- For Arabic-to-English, you MUST perform STRICT, literal translation.
+- Do NOT infer or introduce legal, rights-based, emotional, or advisory content unless those exact ideas are explicitly spoken in Arabic.
+- Prefer word-for-word accuracy over clever paraphrasing. If the speaker says "ما هو التاريخ اليوم؟", you must output "What is the date today?" and you must NOT change it to anything like "What are my rights today?" or any other interpretation.
+` : `
 - Preserve the original meaning, intent, tone, and level of formality.
 - You may rephrase, adjust word order, and choose more natural expressions in ${outputLanguage}, as long as you do NOT change the underlying meaning or omit important information.
+`}
 
 Output Language Only:
 - Exclusively use the output language (${outputLanguage}) in your spoken and written translations.
 - Do NOT mix in words or phrases from ${inputLanguage} or any other language.
-- Do not echo the source utterance in audio; audio output must ONLY contain the translation in ${outputLanguage}.
+
+Audio behavior (hard rules):
+- The spoken audio response must contain ONLY the translated sentence in ${outputLanguage}.
+- You must NEVER repeat, echo, or summarize the user’s original words in ${inputLanguage}.
+- You must NEVER speak any back‑translation into ${inputLanguage}.
+- You must NOT add greetings, confirmations, explanations, or commentary.
+- If the input is silence, noise, or not clearly in ${inputLanguage}, you must output nothing (no audio).
 
 No Conversation or Explanations:
 - Do NOT greet, ask questions, or carry on a conversation.
@@ -533,12 +545,12 @@ function configureTools() {
         const event = {
           type: "session.update",
           session: {
-            tools: tools,
-            tool_choice: "auto",
+            tools: [],
+            tool_choice: "none",
           }
         };
         dc.send(JSON.stringify(event));
-        console.log("Tools configured:", event.session.tools);
+        console.log("Tools disabled for realtime session");
       } else {
         console.error("Data channel is not open");
       }
